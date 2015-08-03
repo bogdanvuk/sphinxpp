@@ -813,8 +813,8 @@ def run(arguments, content, options, state_machine, state, lineno):
             html_show_formats=config.plot_html_show_formats and not nofigs,
             caption=caption)
 
-        print("EVO NAS!")
-        print(result)
+#         print("EVO NAS!")
+#         print(result)
         total_lines.extend(result.split("\n"))
         total_lines.extend("\n")
 
