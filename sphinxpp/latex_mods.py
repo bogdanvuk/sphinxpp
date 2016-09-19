@@ -7,18 +7,18 @@ import sphinx.writers.latex
 BaseTranslator = sphinx.writers.latex.LaTeXTranslator
 
 class DocTranslator(BaseTranslator):
-    
+
     def __init__(self, *args, **kwargs):
         BaseTranslator.__init__(self, *args, **kwargs)
 
 #     def visit_row(self, node):
 #         if self.table.rowcount == 0:
 #             self.body.append('\\\\\n')
-#                 
+#
 #         if self.table.rowcount == 1:
 #             self.body.append('\\\\\n')
 #             self.body.append('\\hline')
-#         
+#
 #         super().visit_row(node)
 
     def depart_row(self, node):
@@ -47,15 +47,15 @@ class DocTranslator(BaseTranslator):
     def depart_table(self, node):
         if self.table.rowcount > 30:
             self.table.longtable = True
-        self.body = self._body
+        #self.body = self._body
         if not self.table.longtable and self.table.caption is not None:
             self.body.append(u'\n\n\\begin{threeparttable}\n\\centering\n'
                              u'\\capstart\\caption{%s}\n' % self.table.caption)
-            for id in self.next_table_ids:
+            for id in self.pop_hyperlink_ids('table'):
                 self.body.append(self.hypertarget(id, anchor=False))
             if node['ids']:
                 self.body.append(self.hypertarget(node['ids'][0], anchor=False))
-            self.next_table_ids.clear()
+            #self.next_table_ids.clear()
         if self.table.longtable:
             self.body.append('\n\\begin{longtable}')
             endmacro = '\\end{longtable}\n\n'
@@ -84,9 +84,9 @@ class DocTranslator(BaseTranslator):
                 self.body.append('{|' + ('L|' * self.table.colcount) + '}\n')
         if self.table.longtable and self.table.caption is not None:
             self.body.append(u'\\caption{%s}' % self.table.caption)
-            for id in self.next_table_ids:
+            for id in self.pop_hyperlink_ids('table'):
                 self.body.append(self.hypertarget(id, anchor=False))
-            self.next_table_ids.clear()
+#            self.next_table_ids.clear()
             self.body.append(u'\\\\\n')
         if self.table.longtable:
             self.body.append('\\hline\n')
@@ -111,14 +111,14 @@ class DocTranslator(BaseTranslator):
         self.body.extend(self.tablebody)
         self.body.append('\\bottomrule\n')
         self.body.append(endmacro)
-        
+
         if not self.table.longtable and self.table.caption is not None:
             self.body.append('\\end{threeparttable}\n\n')
         self.table = None
         self.tablebody = None
 
 #     def visit_entry(self, node):
-#     
+#
 #         if isinstance(node.parent.parent, nodes.thead):
 # #            self.body.append('\\textsf{\\relax ')
 #             self.body.append('\\relax ')

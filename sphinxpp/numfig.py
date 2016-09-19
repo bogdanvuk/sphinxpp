@@ -14,7 +14,7 @@
 from docutils.nodes \
   import figure, caption, Text, reference, raw, SkipNode, Element
 from sphinx.roles import XRefRole
-import sphinxpp.figtable
+#import sphinxpp.figtable
 
 #
 # Element classes
@@ -78,8 +78,7 @@ def compute_numfig_fignums(app, doctree):
   i = getattr(env, 'i', 1)
   figids = getattr(env, 'figids', {})
   figid_docname_map = getattr(env, 'figid_docname_map', {})
-  for figure_info in doctree.traverse(lambda n: isinstance(n, nodes.figure) or \
-                                                isinstance(n, figtable.figtable)):
+  for figure_info in doctree.traverse(figure):
     if app.builder.name != 'latex' and app.config.numfig_number_figures:
       for cap in figure_info.traverse(caption):
         cap[0] = Text("%s %d: %s" % \
@@ -139,4 +138,3 @@ def setup(app):
 
   app.connect('doctree-read', compute_numfig_fignums)
   app.connect('doctree-resolved', insert_numfig_links)
-
