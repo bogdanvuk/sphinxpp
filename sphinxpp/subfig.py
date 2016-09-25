@@ -18,6 +18,7 @@ def visit_subfig_tex(self, node):
     self.body = []
 
 def depart_subfig_tex(self, node):
+
     figoutput = ''.join(self.body)
     figoutput = figoutput.replace('[htbp]', '[t]{%s\\linewidth}' % node['width'])
     figoutput = figoutput.replace('figure', 'subfigure')
@@ -112,6 +113,7 @@ class SubFigStartDirective(Directive):
 def doctree_read(app, doctree):
     secnums = app.builder.env.toc_secnumbers
     for node in doctree.traverse(subfigstart):
+
         parentloc = node.parent.children.index(node)
 
         subfigendloc = parentloc

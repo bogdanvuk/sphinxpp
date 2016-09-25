@@ -160,6 +160,7 @@ except ImportError:
         return jinja.from_string(template, **kw)
 
 import matplotlib
+from matplotlib.transforms import Bbox
 import matplotlib.cbook as cbook
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -252,6 +253,8 @@ def setup(app):
                'format': _option_format,
                'context': _option_context,
                'nofigs': directives.flag,
+               'bbox' : directives.unchanged,
+               'pad' : directives.unchanged,
                'encoding': directives.encoding
                }
 
@@ -405,18 +408,16 @@ TEMPLATE = """
 """
 
 TEMPLATE = """
-{{ only_latex }}
-
-    {% for img in images %}
-    {% if 'pdf' in img.formats -%}
-    .. figure:: {{ build_dir }}/{{ img.basename }}.pdf
-        {% for option in options -%}
-        {{ option }}
-        {% endfor %}
-    
-        {{ caption }}
-    {% endif -%}
+{% for img in images %}
+{% if 'pdf' in img.formats -%}
+.. figure:: {{ build_dir }}/{{ img.basename }}.pdf
+    {% for option in options -%}
+    {{ option }}
     {% endfor %}
+    
+    {{ caption }}
+{% endif -%}
+{% endfor %}
 """
 
 exception_template = """
@@ -543,7 +544,7 @@ def clear_state(plot_rcparams, close=True):
 
 
 def render_figures(code, code_path, output_dir, output_base, context,
-                   function_name, config, context_reset=False):
+                   function_name, config, context_reset=False, bbox=None, pad_inches=None):
     """
     Run a pyplot script and save the low and high res PNGs and a PDF
     in *output_dir*.
@@ -640,7 +641,7 @@ def render_figures(code, code_path, output_dir, output_base, context,
             images.append(img)
             for format, dpi in formats:
                 try:
-                    figman.canvas.figure.savefig(img.filename(format), dpi=dpi)
+                    figman.canvas.figure.savefig(img.filename(format), dpi=dpi, bbox_inches=bbox, pad_inches=pad_inches)
                 except Exception as err:
                     raise PlotError(traceback.format_exc())
                 img.formats.append(format)
@@ -662,6 +663,15 @@ def run(arguments, content, options, state_machine, state, lineno):
     document = state_machine.document
     config = document.settings.env.config
     nofigs = 'nofigs' in options
+    pad_inches = options.get('pad', None)
+    if pad_inches:
+        pad_inches = float(pad_inches)
+
+    bbox = options.get('bbox', None)
+    if bbox:
+        if bbox != 'tight':
+            bbox_coord = [float(x) for x in bbox.split(',')]
+            bbox = Bbox.from_bounds(*bbox_coord)
 
     options.setdefault('include-source', config.plot_include_source)
     context = 'context' in options
@@ -751,7 +761,7 @@ def run(arguments, content, options, state_machine, state, lineno):
     try:
         results = render_figures(code, source_file_name, build_dir, output_base,
                                  context, function_name, config,
-                                 context_reset=context_reset)
+                                 context_reset=context_reset, bbox=bbox, pad_inches=pad_inches)
         errors = []
     except PlotError as err:
         reporter = state.memo.reporter
